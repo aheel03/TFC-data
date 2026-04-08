@@ -26,24 +26,26 @@
         </header>
 
         <section class="table-card">
-            <table id="resultsTable" class="display modern-table" style="width:100%">
-                <thead>
-                    <tr>
-                        {% for column in columns %}
-                            <th>{{ column }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in rows %}
+            <div class="table-scroll-shell">
+                <table id="resultsTable" class="display modern-table" style="width:100%">
+                    <thead>
                         <tr>
                             {% for column in columns %}
-                                <td>{{ row[column] }}</td>
+                                <th>{{ column }}</th>
                             {% endfor %}
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                            <tr>
+                                {% for column in columns %}
+                                    <td>{{ row[column] }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </section>
     </main>
 
@@ -56,6 +58,8 @@
                 lengthMenu: [10, 15, 25, 50, 100],
                 order: [[0, 'asc']],
                 stripeClasses: [],
+                scrollX: true,
+                autoWidth: false,
                 language: {
                     search: 'Search table:',
                     searchPlaceholder: 'Type name, handle, session...'
