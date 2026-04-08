@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+</head>
+<body>
+    <div class="background-glow glow-1"></div>
+    <div class="background-glow glow-2"></div>
+
+    <main class="page-shell">
+        <header class="hero">
+            <p class="eyebrow">TFC Dashboard</p>
+            <h1>{{ title }}</h1>
+            <p class="subtitle">
+                Search by name or handle, sort by any column, and paginate through the full ranking dataset.
+            </p>
+        </header>
+
+        <section class="table-card">
+            <table id="resultsTable" class="display modern-table" style="width:100%">
+                <thead>
+                    <tr>
+                        {% for column in columns %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            {% for column in columns %}
+                                <td>{{ row[column] }}</td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            const table = $('#resultsTable').DataTable({
+                pageLength: 15,
+                lengthMenu: [10, 15, 25, 50, 100],
+                order: [[0, 'asc']],
+                stripeClasses: [],
+                language: {
+                    search: 'Search table:',
+                    searchPlaceholder: 'Type name, handle, session...'
+                }
+            });
+
+            function applyRowBands() {
+                const rows = table.rows({ page: 'current', search: 'applied', order: 'applied' }).nodes();
+                const bandClassPrefix = 'band-group-';
+
+                $(rows).each(function (rowIndex) {
+                    const bandGroup = Math.floor(rowIndex / 3) % 6;
+                    this.className = this.className
+                        .replace(/\bband-group-\d+\b/g, '')
+                        .replace(/\b(odd|even)\b/g, '')
+                        .trim();
+                    this.classList.add(`${bandClassPrefix}${bandGroup}`);
+                });
+            }
+
+            table.on('draw', applyRowBands);
+            applyRowBands();
+        });
+    </script>
+</body>
+</html>
