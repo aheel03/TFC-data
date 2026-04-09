@@ -20,7 +20,7 @@ def load_results() -> tuple[list[str], list[dict[str, Any]]]:
         columns = reader.fieldnames or []
         rows = [row for row in reader]
 
-    columns = ["current position"] + columns 
+    columns = ["current position"] + columns
     for index, row in enumerate(rows, start=1):
         row["current position"] = index
 
@@ -30,11 +30,26 @@ def load_results() -> tuple[list[str], list[dict[str, Any]]]:
 @app.route("/")
 def index() -> str:
     columns, rows = load_results()
+
+    # Compute stats for the dashboard cards
+    total = len(rows)
+    scores = [float(r.get("weighted_score", 0) or 0) for r in rows]
+    top_score = max(scores) if scores else 0
+    top_name = next(
+        (r["name"] for r in rows if float(r.get("weighted_score", 0) or 0) == top_score),
+        "—",
+    )
+    sessions = len({r.get("session", "") for r in rows if r.get("session", "")})
+
     return render_template(
         "index.html",
         title="Team Forming Contest Results Data",
         columns=columns,
         rows=rows,
+        total=total,
+        top_score=top_score,
+        top_name=top_name,
+        sessions=sessions,
     )
 
 
