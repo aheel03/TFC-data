@@ -3,29 +3,62 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Team Forming Contest — live weighted rankings dashboard" />
     <title>{{ title }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
-    <div class="background-glow glow-1"></div>
-    <div class="background-glow glow-2"></div>
+
+    <!-- Ambient background orbs -->
+    <div class="ambient"><span></span></div>
 
     <main class="page-shell">
-        <header class="hero">
-            <p class="eyebrow">TFC Dashboard</p>
+
+        <!-- Top bar -->
+        <nav class="topbar" id="topbar">
+            <div class="topbar-brand">
+                <div class="topbar-logo">TF</div>
+                <div class="topbar-name">TFC <span>Dashboard</span></div>
+            </div>
+            <div class="topbar-pill">Live Data</div>
+        </nav>
+
+        <!-- Hero -->
+        <header class="hero" id="hero">
+            <p class="hero-eyebrow">Competitive Programming</p>
             <h1>{{ title }}</h1>
-            <p class="subtitle">
-                Search by name or handle, sort by any column, and paginate through the full ranking dataset.
+            <p class="hero-sub">
+                Explore weighted rankings across all contest sessions. Search by name or handle, sort any column, and track performance at a glance.
             </p>
         </header>
 
-        <section class="table-card">
+        <!-- Stats -->
+        <section class="stats-row" id="stats-row">
+            <div class="stat-card">
+                <span class="stat-label">Total Contestants</span>
+                <span class="stat-value">{{ total }}</span>
+                <span class="stat-delta">across all sessions</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Highest Score</span>
+                <span class="stat-value">{{ top_score }}</span>
+                <span class="stat-delta">{{ top_name }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Active Sessions</span>
+                <span class="stat-value">{{ sessions }}</span>
+                <span class="stat-delta">unique batches</span>
+            </div>
+        </section>
+
+        <!-- Table -->
+        <section class="table-card" id="table-card">
             <div class="table-scroll-shell">
                 <table id="resultsTable" class="display modern-table" style="width:100%">
                     <thead>
@@ -39,7 +72,11 @@
                         {% for row in rows %}
                             <tr>
                                 {% for column in columns %}
-                                    <td>{{ row[column] }}</td>
+                                    {% if column == 'session' %}
+                                        <td><span class="session-badge">{{ row[column] }}</span></td>
+                                    {% else %}
+                                        <td>{{ row[column] }}</td>
+                                    {% endif %}
                                 {% endfor %}
                             </tr>
                         {% endfor %}
@@ -47,6 +84,10 @@
                 </table>
             </div>
         </section>
+
+        <footer class="footer">
+            TFC &mdash; Team Forming Contest &bull; Data updated automatically
+        </footer>
     </main>
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -61,22 +102,41 @@
                 scrollX: true,
                 autoWidth: false,
                 language: {
-                    search: 'Search table:',
-                    searchPlaceholder: 'Type name, handle, session...'
-                }
+                    search: '',
+                    searchPlaceholder: 'Search name, handle, session…',
+                    lengthMenu: 'Show _MENU_ rows',
+                    info: 'Showing _START_–_END_ of _TOTAL_ contestants',
+                    infoEmpty: 'No contestants found',
+                    infoFiltered: '(filtered from _MAX_)',
+                    paginate: { previous: '‹', next: '›' }
+                },
+                /* Move controls after init */
+                dom: '<"dt-controls-top"lf>rt<"dt-controls-bottom"ip>'
             });
 
+            /* ── Row banding: groups of 3 get the same color ─── */
             function applyRowBands() {
-                const rows = table.rows({ page: 'current', search: 'applied', order: 'applied' }).nodes();
-                const bandClassPrefix = 'band-group-';
+                const rows = table.rows({
+                    page: 'current',
+                    search: 'applied',
+                    order: 'applied'
+                }).nodes();
 
-                $(rows).each(function (rowIndex) {
-                    const bandGroup = Math.floor(rowIndex / 3) % 6;
+                $(rows).each(function (i) {
+                    const bandGroup = Math.floor(i / 3) % 6;
+                    /* Strip old classes */
                     this.className = this.className
                         .replace(/\bband-group-\d+\b/g, '')
                         .replace(/\b(odd|even)\b/g, '')
+                        .replace(/\brank-(gold|silver|bronze)\b/g, '')
                         .trim();
-                    this.classList.add(`${bandClassPrefix}${bandGroup}`);
+                    this.classList.add('band-group-' + bandGroup);
+
+                    /* Medal ranks */
+                    const pos = parseInt(this.cells[0].textContent, 10);
+                    if (pos === 1) this.classList.add('rank-gold');
+                    else if (pos === 2) this.classList.add('rank-silver');
+                    else if (pos === 3) this.classList.add('rank-bronze');
                 });
             }
 
