@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Team Forming Contest — live weighted rankings dashboard" />
+    <meta name="description" content="Team Forming Contest — live normalized weighted rankings dashboard" />
     <title>{{ title }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=styles_version) }}" />
 </head>
 <body>
 
@@ -34,7 +34,7 @@
             <p class="hero-eyebrow">Competitive Programming</p>
             <h1>{{ title }}</h1>
             <p class="hero-sub">
-                Explore weighted rankings across all contest sessions. Search by name or handle, sort any column, and track performance at a glance.
+                Explore normalized weighted rankings across all contest sessions. Search by name or handle, sort any column, and track performance at a glance.
             </p>
         </header>
 
@@ -46,7 +46,7 @@
                 <span class="stat-delta">across all sessions</span>
             </div>
             <div class="stat-card">
-                <span class="stat-label">Highest Score</span>
+                <span class="stat-label">Highest Normalized Score</span>
                 <span class="stat-value">{{ top_score }}</span>
                 <span class="stat-delta">{{ top_name }}</span>
             </div>
@@ -64,7 +64,7 @@
                     <thead>
                         <tr>
                             {% for column in columns %}
-                                <th>{{ column }}</th>
+                                <th>{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
@@ -74,6 +74,8 @@
                                 {% for column in columns %}
                                     {% if column == 'session' %}
                                         <td><span class="session-badge">{{ row[column] }}</span></td>
+                                    {% elif column == 'normalized_weighted_score' %}
+                                        <td data-order="{{ row[column] }}">{{ '%.3f'|format((row[column] or 0)|float) }}</td>
                                     {% else %}
                                         <td>{{ row[column] }}</td>
                                     {% endif %}

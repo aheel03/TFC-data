@@ -35,7 +35,7 @@ if not USERNAME or not PASSWORD:
     )
 
 # Format: [[contest_id, weight], [contest_id, weight]]
-CONTEST_LIST = [[802104, 1.25], [802757, 1]]
+CONTEST_LIST = [[802104, 1.25], [802757, 1], [804183, 1.25]]
 
 HEADLESS = False  # Set to False so you can solve CAPTCHA if it appears
 
@@ -82,8 +82,8 @@ def get_solve_counts(data):
 
 def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path):
     """
-    Maps vjudge handles to form info and calculates weighted sums.
-    Columns: name, vjudge handle, session, [contest_ids...], weighted_score
+    Maps vjudge handles to form info and calculates normalized weighted sums.
+    Columns: name, vjudge handle, session, [contest_ids...], normalized_weighted_score
     """
     print(f"[*] Mapping data against '{form_csv_path}'...")
     
@@ -107,6 +107,13 @@ def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path
     for c_id in contest_ids:
         all_handles.update(all_stats[c_id]["results"].keys())
 
+    # Precompute max solves per contest for normalization.
+    # If a contest has no submissions, max defaults to 0.
+    contest_max_solves = {}
+    for c_id in contest_ids:
+        solves_list = list(all_stats[c_id]["results"].values())
+        contest_max_solves[c_id] = max(solves_list) if solves_list else 0
+
     for handle in all_handles:
         name = user_info_map.get(handle, {}).get("name", handle)
         session = user_info_map.get(handle, {}).get("session", "Unknown")
@@ -116,27 +123,29 @@ def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path
             "vjudge handle": handle,
             "session": session,
             "individual_solves": [],
-            "weighted_score": 0.0
+            "normalized_weighted_score": 0.0
         }
 
         for c_id, weight in CONTEST_LIST:
             solves = all_stats[c_id]["results"].get(handle, 0)
             row_data["individual_solves"].append(solves)
-            row_data["weighted_score"] += (solves * weight)
+            max_solves = contest_max_solves.get(c_id, 0)
+            normalized_score = (solves / max_solves) * weight if max_solves > 0 else 0.0
+            row_data["normalized_weighted_score"] += normalized_score
         
         final_rows.append(row_data)
 
     # 3. Sort: Weighted Score (Descending), then Name (Lexicographical Ascending)
-    final_rows.sort(key=lambda x: (-x["weighted_score"], x["name"].lower()))
+    final_rows.sort(key=lambda x: (-x["normalized_weighted_score"], x["name"].lower()))
 
     # 4. Write to CSV
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        header = ["name", "vjudge handle", "session"] + [f"Contest {c[0]}" for c in CONTEST_LIST] + ["weighted_score"]
+        header = ["name", "vjudge handle", "session"] + [f"Contest {c[0]}" for c in CONTEST_LIST] + ["normalized_weighted_score"]
         writer.writerow(header)
         
         for r in final_rows:
-            writer.writerow([r["name"], r["vjudge handle"], r["session"]] + r["individual_solves"] + [r["weighted_score"]])
+            writer.writerow([r["name"], r["vjudge handle"], r["session"]] + r["individual_solves"] + [r["normalized_weighted_score"]])
 
     print(f"[+] Multi-contest weighted CSV generated: '{output_csv_path}'")
 
