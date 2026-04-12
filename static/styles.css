@@ -249,6 +249,8 @@ body {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.81rem;
   font-weight: 500;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .table-card {
@@ -362,6 +364,13 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 140ms ease;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.disabled) {
@@ -550,6 +559,24 @@ table.dataTable tbody tr:hover {
     padding-top: 1.1rem;
   }
 
+  .hero-sub {
+    font-size: 0.92rem;
+  }
+
+  .formula-card {
+    padding: 0.95rem 1rem;
+  }
+
+  table.dataTable {
+    min-width: 760px;
+  }
+
+  table.dataTable tbody td:nth-child(2),
+  table.dataTable thead th:nth-child(2) {
+    min-width: 210px;
+    width: 230px;
+  }
+
   .dt-controls-top {
     flex-direction: column;
     align-items: stretch;
@@ -562,8 +589,14 @@ table.dataTable tbody tr:hover {
 }
 
 @media (max-width: 560px) {
+  .page-shell {
+    width: calc(100% - 0.7rem);
+    padding-top: 0.7rem;
+  }
+
   .topbar {
     padding: 0.72rem 0.85rem;
+    margin-bottom: 1.05rem;
   }
 
   .topbar-pill {
@@ -574,7 +607,93 @@ table.dataTable tbody tr:hover {
     font-size: 1.7rem;
   }
 
+  .hero-sub {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .formula-card {
+    padding: 0.85rem 0.85rem;
+    margin-bottom: 0.9rem;
+  }
+
   .formula-card h2 {
     font-size: 1.05rem;
+  }
+
+  .formula-expression {
+    font-size: 0.74rem;
+  }
+
+  .table-card {
+    border-radius: 16px;
+  }
+
+  .dataTables_wrapper {
+    padding: 0.72rem 0.72rem 0.9rem;
+  }
+
+  .dataTables_wrapper .dataTables_length label,
+  .dataTables_wrapper .dataTables_filter label {
+    font-size: 0.78rem;
+    width: 100%;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+    padding: 0.52rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .dataTables_wrapper .dataTables_length select {
+    padding: 0.44rem 0.55rem;
+    font-size: 0.76rem;
+  }
+
+  .dt-controls-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dataTables_wrapper .dataTables_info {
+    font-size: 0.72rem;
+  }
+
+  .dataTables_wrapper .dataTables_paginate {
+    justify-content: flex-start;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.74rem !important;
+    padding: 0 0.45rem !important;
+  }
+
+  table.dataTable {
+    min-width: 680px;
+  }
+
+  table.dataTable thead th {
+    font-size: 0.61rem !important;
+    padding: 0.6rem 0.45rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  table.dataTable tbody td {
+    font-size: 0.75rem;
+    padding: 0.55rem 0.45rem !important;
+  }
+
+  table.dataTable tbody td:nth-child(2),
+  table.dataTable thead th:nth-child(2) {
+    min-width: 160px;
+    width: 170px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  table.dataTable tbody td:nth-child(4) span.session-badge {
+    font-size: 0.66rem;
+    padding: 0.18rem 0.45rem;
   }
 }
