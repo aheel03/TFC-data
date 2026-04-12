@@ -82,7 +82,7 @@ def get_solve_counts(data):
 
 def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path):
     """
-    Maps vjudge handles to form info and calculates normalized weighted sums.
+    Maps vjudge handles to form info and calculates normalized weighted scores.
     Columns: name, vjudge handle, session, [contest_ids...], normalized_weighted_score
     """
     print(f"[*] Mapping data against '{form_csv_path}'...")
@@ -114,6 +114,8 @@ def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path
         solves_list = list(all_stats[c_id]["results"].values())
         contest_max_solves[c_id] = max(solves_list) if solves_list else 0
 
+    total_weight = sum(weight for _, weight in CONTEST_LIST)
+
     for handle in all_handles:
         name = user_info_map.get(handle, {}).get("name", handle)
         session = user_info_map.get(handle, {}).get("session", "Unknown")
@@ -130,8 +132,17 @@ def generate_weighted_csv(all_stats, contest_ids, form_csv_path, output_csv_path
             solves = all_stats[c_id]["results"].get(handle, 0)
             row_data["individual_solves"].append(solves)
             max_solves = contest_max_solves.get(c_id, 0)
+            # Bounded normalization: contribution_i = (solve_i / maxSolve_i) * weight_i.
+            # Keeps each contest contribution in [0, weight_i], so final score stays in [0, 100].
             normalized_score = (solves / max_solves) * weight if max_solves > 0 else 0.0
             row_data["normalized_weighted_score"] += normalized_score
+
+        # Scale by total weight so top solver in all contests gets 100.
+        row_data["normalized_weighted_score"] = (
+            (row_data["normalized_weighted_score"] / total_weight) * 100
+            if total_weight > 0
+            else 0.0
+        )
         
         final_rows.append(row_data)
 

@@ -42,10 +42,21 @@
         <section class="formula-card" id="score-formula">
             <p class="formula-kicker">Score Calculation</p>
             <h2>How The Final Score Is Computed</h2>
-            <p class="formula-line">Per contest contribution:</p>
-            <p class="formula-expression">(solved_count / max_solved_count_in_that_contest) x contest_weight</p>
-            <p class="formula-line">Final normalized weighted score:</p>
-            <p class="formula-expression">sum of all per contest contributions</p>
+            <p class="formula-line">For participant \(p\), the normalized weighted score is:</p>
+            <p class="formula-expression">
+                \[
+                	ext{Score}_p =
+                \left(
+                \frac{\sum_{i=1}^{n}\left(\frac{\text{solve}_{p,i}}{\max\_\text{solve}_i}\right)\,w_i}{\sum_{i=1}^{n} w_i}
+                \right) \times 100
+                \]
+            </p>
+            <p class="formula-line">
+                Where \(\max\_\text{solve}_i\) is the highest solve count in contest \(i\),
+                \(\text{solve}_{p,i}\) is participant \(p\)'s solve count in contest \(i\), and \(w_i\) is contest \(i\)'s weight.
+                Since each ratio \(\text{solve}_{p,i}/\max\_\text{solve}_i\le 1\), the final score is always at most \(100\).
+                If a participant is top solver in every contest, each ratio is \(1\), so the final score is exactly \(100\).
+            </p>
         </section>
 
         <!-- Table -->
@@ -85,6 +96,15 @@
 
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         $(document).ready(function () {
             const table = $('#resultsTable').DataTable({
