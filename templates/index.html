@@ -38,23 +38,14 @@
             </p>
         </header>
 
-        <!-- Stats -->
-        <section class="stats-row" id="stats-row">
-            <div class="stat-card">
-                <span class="stat-label">Total Contestants</span>
-                <span class="stat-value">{{ total }}</span>
-                <span class="stat-delta">across all sessions</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Highest Normalized Score</span>
-                <span class="stat-value">{{ top_score }}</span>
-                <span class="stat-delta">{{ top_name }}</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Active Sessions</span>
-                <span class="stat-value">{{ sessions }}</span>
-                <span class="stat-delta">unique batches</span>
-            </div>
+        <!-- Score Formula -->
+        <section class="formula-card" id="score-formula">
+            <p class="formula-kicker">Score Calculation</p>
+            <h2>How The Final Score Is Computed</h2>
+            <p class="formula-line">Per contest contribution:</p>
+            <p class="formula-expression">(solved_count / max_solved_count_in_that_contest) x contest_weight</p>
+            <p class="formula-line">Final normalized weighted score:</p>
+            <p class="formula-expression">sum of all per contest contributions</p>
         </section>
 
         <!-- Table -->

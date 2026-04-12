@@ -203,33 +203,19 @@ body {
   line-height: 1.6;
 }
 
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.95rem;
+.formula-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: 1.1rem 1.2rem;
   margin-bottom: 1.25rem;
+  background: var(--surface);
+  box-shadow: var(--shadow-s);
   animation: rise 760ms ease both;
   animation-delay: 140ms;
 }
 
-.stat-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  padding: 1rem 1.1rem;
-  background: var(--surface);
-  box-shadow: var(--shadow-s);
-  display: flex;
-  flex-direction: column;
-  gap: 0.28rem;
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-m);
-}
-
-.stat-label {
+.formula-kicker {
+  margin: 0;
   color: var(--text-2);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -237,18 +223,32 @@ body {
   font-weight: 700;
 }
 
-.stat-value {
+.formula-card h2 {
+  margin: 0.35rem 0 0.6rem;
   font-family: "Sora", sans-serif;
-  font-size: 1.72rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
-.stat-delta {
-  color: var(--accent-0);
-  font-size: 0.75rem;
+.formula-line {
+  margin: 0.45rem 0 0.25rem;
+  color: var(--text-1);
+  font-size: 0.86rem;
   font-weight: 600;
+}
+
+.formula-expression {
+  margin: 0;
+  display: inline-block;
+  border: 1px solid rgba(15, 118, 110, 0.24);
+  background: rgba(15, 118, 110, 0.07);
+  border-radius: var(--radius-s);
+  padding: 0.38rem 0.62rem;
+  color: var(--accent-0);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.81rem;
+  font-weight: 500;
 }
 
 .table-card {
@@ -550,14 +550,6 @@ table.dataTable tbody tr:hover {
     padding-top: 1.1rem;
   }
 
-  .stats-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .stat-card:last-child {
-    grid-column: 1 / -1;
-  }
-
   .dt-controls-top {
     flex-direction: column;
     align-items: stretch;
@@ -582,11 +574,7 @@ table.dataTable tbody tr:hover {
     font-size: 1.7rem;
   }
 
-  .stats-row {
-    grid-template-columns: 1fr;
-  }
-
-  .stat-card:last-child {
-    grid-column: auto;
+  .formula-card h2 {
+    font-size: 1.05rem;
   }
 }
