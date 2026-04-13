@@ -35,7 +35,7 @@ if not USERNAME or not PASSWORD:
     )
 
 # Format: [[contest_id, weight], [contest_id, weight]]
-CONTEST_LIST = [[802104, 1.25], [802757, 1], [804183, 1.25]]
+CONTEST_LIST = [[802104, 1.25], [802757, 1], [804183, 1.25],[804587,1]]
 
 HEADLESS = False  # Set to False so you can solve CAPTCHA if it appears
 
