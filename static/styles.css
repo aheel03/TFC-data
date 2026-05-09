@@ -263,6 +263,56 @@ body {
   animation-delay: 220ms;
 }
 
+.table-card h2 {
+  margin: 0;
+  padding: 1.1rem 1.2rem 0;
+  font-family: "Sora", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #0b1324;
+}
+
+.table-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 14px;
+}
+
+.toggle-btn {
+  background: linear-gradient(140deg, rgba(15, 118, 110, 0.18), rgba(34, 197, 94, 0.16));
+  border: 1px solid rgba(15, 118, 110, 0.45);
+  color: var(--text-0);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+}
+
+.toggle-btn:hover {
+  background: linear-gradient(140deg, rgba(15, 118, 110, 0.28), rgba(34, 197, 94, 0.22));
+  border-color: rgba(15, 118, 110, 0.6);
+  transform: translateY(-1px);
+}
+
+.toggle-btn.is-active {
+  background: linear-gradient(140deg, #0f766e, #22c55e);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 14px 26px rgba(15, 118, 110, 0.24);
+}
+
+.is-hidden {
+  display: none;
+}
+
 .table-scroll-shell {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -278,7 +328,7 @@ body {
 }
 
 .dataTables_wrapper {
-  padding: 1.1rem 1.2rem 1.25rem;
+  padding: 0.75rem 1.2rem 1.25rem;
   color: var(--text-0);
   font-family: "Space Grotesk", "Segoe UI", sans-serif;
 }

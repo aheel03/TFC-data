@@ -34,50 +34,95 @@
             <p class="hero-eyebrow">Competitive Programming</p>
             <h1>{{ title }}</h1>
             <p class="hero-sub">
-                Explore normalized weighted rankings across all contest sessions. Search by name or handle, sort any column, and track performance at a glance.
+                Explore all contest data plus the main leaderboard built from the top {{ k_percent }}% normalized results in each category. Search by name or handle, sort any column, and track performance at a glance.
             </p>
         </header>
 
         <!-- Score Formula -->
         <section class="formula-card" id="score-formula">
             <p class="formula-kicker">Score Calculation</p>
-            <h2>How The Final Score Is Computed</h2>
-            <p class="formula-line">For participant \(p\), the normalized weighted score is:</p>
+            <h2>How The Main Leaderboard Score Is Computed</h2>
+            <p class="formula-line">
+                Each contest score is normalized as \(\text{solve}_{p,i} / \max\_\text{solve}_i\). Then we take the top \({{ k_percent }}\%\)
+                from Saturday and Monday separately.
+            </p>
             <p class="formula-expression">
                 \[
                 	ext{Score}_p =
                 \left(
-                \frac{\sum_{i=1}^{n}\left(\frac{\text{solve}_{p,i}}{\max\_\text{solve}_i}\right)\,w_i}{\sum_{i=1}^{n} w_i}
+                \frac{w_s\,\sum\left(\text{top}_s\right) + w_m\,\sum\left(\text{top}_m\right)}{w_s\,n_s + w_m\,n_m}
                 \right) \times 100
                 \]
             </p>
             <p class="formula-line">
-                Where \(\max\_\text{solve}_i\) is the highest solve count in contest \(i\),
-                \(\text{solve}_{p,i}\) is participant \(p\)'s solve count in contest \(i\), and \(w_i\) is contest \(i\)'s weight.
-                Since each ratio \(\text{solve}_{p,i}/\max\_\text{solve}_i\le 1\), the final score is always at most \(100\).
-                If a participant is top solver in every contest, each ratio is \(1\), so the final score is exactly \(100\).
+                Where \(n_s = \lfloor {{ k_percent }}/100 \times {{ saturday_total }} \rfloor = {{ saturday_take }}\) and
+                \(n_m = \lfloor {{ k_percent }}/100 \times {{ monday_total }} \rfloor = {{ monday_take }}\).
+                We use \(w_s = {{ saturday_weight }}\) and \(w_m = {{ monday_weight }}\).
+            </p>
+            <p class="formula-line">
+                Saturday contests: {{ saturday_contests|join(', ') }}. Monday contests: {{ monday_contests|join(', ') }}.
             </p>
         </section>
 
+        <div class="table-toggle" role="tablist" aria-label="Contest tables">
+            <button class="toggle-btn is-active" data-target="leaderboard-table" role="tab" aria-pressed="true">
+                Main leaderboard
+            </button>
+            <button class="toggle-btn" data-target="all-contests-table" role="tab" aria-pressed="false">
+                All contests
+            </button>
+        </div>
+
         <!-- Table -->
-        <section class="table-card" id="table-card">
+        <section class="table-card is-hidden" id="all-contests-table">
+            <h2>All Contests (Sorted by Total Solve Count)</h2>
             <div class="table-scroll-shell">
-                <table id="resultsTable" class="display modern-table" style="width:100%">
+                <table id="allResultsTable" class="display modern-table" style="width:100%">
                     <thead>
                         <tr>
-                            {% for column in columns %}
+                            {% for column in all_columns %}
                                 <th>{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</th>
                             {% endfor %}
                         </tr>
                     </thead>
                     <tbody>
-                        {% for row in rows %}
+                        {% for row in all_rows %}
                             <tr>
-                                {% for column in columns %}
+                                {% for column in all_columns %}
                                     {% if column == 'session' %}
                                         <td><span class="session-badge">{{ row[column] }}</span></td>
-                                    {% elif column == 'normalized_weighted_score' %}
+                                    {% else %}
+                                        <td>{{ row[column] }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-card" id="leaderboard-table">
+            <h2>Main Leaderboard (Top {{ k_percent }}% From Each Category)</h2>
+            <div class="table-scroll-shell">
+                <table id="leaderboardTable" class="display modern-table" style="width:100%">
+                    <thead>
+                        <tr>
+                            {% for column in leaderboard_columns %}
+                                <th>{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in leaderboard_rows %}
+                            <tr>
+                                {% for column in leaderboard_columns %}
+                                    {% if column == 'session' %}
+                                        <td><span class="session-badge">{{ row[column] }}</span></td>
+                                    {% elif column == 'final_score' %}
                                         <td data-order="{{ row[column] }}">{{ '%.3f'|format((row[column] or 0)|float) }}</td>
+                                    {% elif 'normalized' in column or 'sum' in column %}
+                                        <td>{{ '%.3f'|format((row[column] or 0)|float) }}</td>
                                     {% else %}
                                         <td>{{ row[column] }}</td>
                                     {% endif %}
@@ -107,7 +152,8 @@
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script>
         $(document).ready(function () {
-            const table = $('#resultsTable').DataTable({
+            function initTable(tableId) {
+                return $(tableId).DataTable({
                 pageLength: 15,
                 lengthMenu: [10, 15, 25, 50, 100],
                 order: [[0, 'asc']],
@@ -125,10 +171,10 @@
                 },
                 /* Move controls after init */
                 dom: '<"dt-controls-top"lf>rt<"dt-controls-bottom"ip>'
-            });
+                });
+            }
 
-            /* ── Row banding: groups of 3 get the same color ─── */
-            function applyRowBands() {
+            function applyRowBands(table) {
                 const rows = table.rows({
                     page: 'current',
                     search: 'applied',
@@ -137,7 +183,6 @@
 
                 $(rows).each(function (i) {
                     const bandGroup = Math.floor(i / 3) % 6;
-                    /* Strip old classes */
                     this.className = this.className
                         .replace(/\bband-group-\d+\b/g, '')
                         .replace(/\b(odd|even)\b/g, '')
@@ -145,7 +190,6 @@
                         .trim();
                     this.classList.add('band-group-' + bandGroup);
 
-                    /* Medal ranks */
                     const pos = parseInt(this.cells[0].textContent, 10);
                     if (pos === 1) this.classList.add('rank-gold');
                     else if (pos === 2) this.classList.add('rank-silver');
@@ -153,8 +197,53 @@
                 });
             }
 
-            table.on('draw', applyRowBands);
-            applyRowBands();
+            const allTable = initTable('#allResultsTable');
+            const leaderboardTable = initTable('#leaderboardTable');
+
+            allTable.on('draw', function () {
+                applyRowBands(allTable);
+            });
+            leaderboardTable.on('draw', function () {
+                applyRowBands(leaderboardTable);
+            });
+
+            applyRowBands(allTable);
+            applyRowBands(leaderboardTable);
+
+            const tableSections = {
+                'all-contests-table': document.getElementById('all-contests-table'),
+                'leaderboard-table': document.getElementById('leaderboard-table')
+            };
+
+            const tableInstances = {
+                'all-contests-table': allTable,
+                'leaderboard-table': leaderboardTable
+            };
+
+            function setActiveTable(targetId) {
+                Object.keys(tableSections).forEach(function (key) {
+                    const section = tableSections[key];
+                    const isActive = key === targetId;
+                    section.classList.toggle('is-hidden', !isActive);
+                });
+
+                document.querySelectorAll('.toggle-btn').forEach(function (btn) {
+                    const isActive = btn.getAttribute('data-target') === targetId;
+                    btn.classList.toggle('is-active', isActive);
+                    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                });
+
+                const activeTable = tableInstances[targetId];
+                if (activeTable) {
+                    activeTable.columns.adjust().draw(false);
+                }
+            }
+
+            document.querySelectorAll('.toggle-btn').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    setActiveTable(btn.getAttribute('data-target'));
+                });
+            });
         });
     </script>
 </body>
