@@ -281,6 +281,64 @@ body {
   margin: 26px 0 14px;
 }
 
+.table-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.legend-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: var(--text-1);
+}
+
+.legend-sat {
+  border: 1px solid rgba(14, 165, 163, 0.4);
+  color: #0f766e;
+  background: rgba(14, 165, 163, 0.12);
+}
+
+.legend-mon {
+  border: 1px solid rgba(59, 130, 246, 0.45);
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.contest-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 999px;
+  padding: 0.18rem 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.badge-sat {
+  background: rgba(14, 165, 163, 0.18);
+  color: #0f766e;
+  border: 1px solid rgba(14, 165, 163, 0.45);
+}
+
+.badge-mon {
+  background: rgba(59, 130, 246, 0.18);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.45);
+}
+
 .toggle-btn {
   background: linear-gradient(140deg, rgba(15, 118, 110, 0.18), rgba(34, 197, 94, 0.16));
   border: 1px solid rgba(15, 118, 110, 0.45);
@@ -465,6 +523,11 @@ table.dataTable thead th {
   line-height: 1.25;
   padding: 0.85rem 0.9rem !important;
   font-family: "Sora", sans-serif !important;
+  vertical-align: bottom;
+}
+
+.th-label {
+  display: block;
 }
 
 table.dataTable thead th.sorting_asc,

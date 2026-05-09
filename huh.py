@@ -36,7 +36,7 @@ if not USERNAME or not PASSWORD:
 
 # --- CONTEST GROUPS ---
 # Keep these lists updated with the correct contest IDs per day.
-SATURDAY_CONTESTS = [802104, 804183, 807851]
+SATURDAY_CONTESTS = [802104, 804183, 807851,811576]
 MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448]
 
 # Leaderboard parameters

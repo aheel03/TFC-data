@@ -39,6 +39,10 @@
         </header>
 
         <!-- Score Formula -->
+        {% set saturday_total = saturday_contests|length %}
+        {% set monday_total = monday_contests|length %}
+        {% set saturday_take = (k_percent * saturday_total) // 100 %}
+        {% set monday_take = (k_percent * monday_total) // 100 %}
         <section class="formula-card" id="score-formula">
             <p class="formula-kicker">Score Calculation</p>
             <h2>How The Main Leaderboard Score Is Computed</h2>
@@ -71,6 +75,10 @@
             <button class="toggle-btn" data-target="all-contests-table" role="tab" aria-pressed="false">
                 All contests
             </button>
+        </div>
+        <div class="table-legend" aria-label="Contest category legend">
+            <span class="legend-pill legend-sat">Saturday</span>
+            <span class="legend-pill legend-mon">Monday</span>
         </div>
 
         <!-- Table -->
@@ -109,7 +117,16 @@
                     <thead>
                         <tr>
                             {% for column in leaderboard_columns %}
-                                <th>{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</th>
+                                {% set column_parts = column.split(' ') %}
+                                {% set contest_id = column_parts[1] if column_parts|length > 1 else '' %}
+                                <th>
+                                    <span class="th-label">{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</span>
+                                    {% if contest_id and contest_id|int in saturday_contests %}
+                                        <span class="contest-badge badge-sat">Sat</span>
+                                    {% elif contest_id and contest_id|int in monday_contests %}
+                                        <span class="contest-badge badge-mon">Mon</span>
+                                    {% endif %}
+                                </th>
                             {% endfor %}
                         </tr>
                     </thead>
