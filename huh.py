@@ -37,7 +37,7 @@ if not USERNAME or not PASSWORD:
 # --- CONTEST GROUPS ---
 # Keep these lists updated with the correct contest IDs per day.
 SATURDAY_CONTESTS = [802104, 804183, 807851,811576]
-MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448]
+MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448, 812090]
 
 # Leaderboard parameters
 K_PERCENT = 80
@@ -88,7 +88,7 @@ def get_solve_counts(data):
     return results
 
 def build_user_info_map(form_csv_path):
-    """Read form data: {handle_lower: {name, session}}."""
+    """Read form data: {handle_lower: {name, session, department}}."""
     user_info_map = {}
     if os.path.exists(form_csv_path):
         with open(form_csv_path, "r", encoding="utf-8") as f:
@@ -99,6 +99,7 @@ def build_user_info_map(form_csv_path):
                     user_info_map[vj_handle] = {
                         "name": row.get("Name", "").strip(),
                         "session": row.get("Session", "").strip(),
+                        "department": row.get("Department", "").strip(),
                     }
     return user_info_map
 
@@ -114,7 +115,7 @@ def build_contest_max_solves(all_stats, contest_ids):
 def generate_all_contests_csv(all_stats, contest_ids, form_csv_path, output_csv_path):
     """
     Maps vjudge handles to form info and lists all contest solves.
-    Columns: name, vjudge handle, session, [contest_ids...], total_solve_count
+    Columns: name, vjudge handle, session, department, [contest_ids...], total_solve_count
     """
     print(f"[*] Mapping data against '{form_csv_path}' for all-contest table...")
 
@@ -128,6 +129,7 @@ def generate_all_contests_csv(all_stats, contest_ids, form_csv_path, output_csv_
     for handle in all_handles:
         name = user_info_map.get(handle, {}).get("name", handle)
         session = user_info_map.get(handle, {}).get("session", "Unknown")
+        department = user_info_map.get(handle, {}).get("department", "Unknown")
 
         contest_solves = []
         total_solve_count = 0
@@ -141,6 +143,7 @@ def generate_all_contests_csv(all_stats, contest_ids, form_csv_path, output_csv_
                 "name": name,
                 "vjudge handle": handle,
                 "session": session,
+                "department": department,
                 "contest_solves": contest_solves,
                 "total_solve_count": total_solve_count,
             }
@@ -150,14 +153,14 @@ def generate_all_contests_csv(all_stats, contest_ids, form_csv_path, output_csv_
 
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        header = ["name", "vjudge handle", "session"] + [
+        header = ["name", "vjudge handle", "session", "department"] + [
             f"Contest {contest_id}" for contest_id in contest_ids
         ] + ["total_solve_count"]
         writer.writerow(header)
 
         for row in final_rows:
             writer.writerow(
-                [row["name"], row["vjudge handle"], row["session"]]
+                [row["name"], row["vjudge handle"], row["session"], row["department"]]
                 + row["contest_solves"]
                 + [row["total_solve_count"]]
             )
@@ -177,8 +180,8 @@ def generate_leaderboard_csv(
 ):
     """
     Computes leaderboard using top k% contests per category.
-    Columns: name, vjudge handle, session, [normalized contests...], best_saturday_sum,
-    best_monday_sum, final_score
+    Columns: name, vjudge handle, session, department, [normalized contests...],
+    best_saturday_sum, best_monday_sum, final_score
     """
     print(f"[*] Mapping data against '{form_csv_path}' for leaderboard...")
 
@@ -198,6 +201,7 @@ def generate_leaderboard_csv(
     for handle in all_handles:
         name = user_info_map.get(handle, {}).get("name", handle)
         session = user_info_map.get(handle, {}).get("session", "Unknown")
+        department = user_info_map.get(handle, {}).get("department", "Unknown")
 
         normalized_values = {}
         for contest_id in contest_ids:
@@ -225,6 +229,7 @@ def generate_leaderboard_csv(
                 "name": name,
                 "vjudge handle": handle,
                 "session": session,
+                "department": department,
                 "normalized_values": [normalized_values[cid] for cid in contest_ids],
                 "best_saturday_sum": best_saturday_sum,
                 "best_monday_sum": best_monday_sum,
@@ -236,14 +241,14 @@ def generate_leaderboard_csv(
 
     with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
-        header = ["name", "vjudge handle", "session"] + [
+        header = ["name", "vjudge handle", "session", "department"] + [
             f"Contest {contest_id} normalized" for contest_id in contest_ids
         ] + ["best_saturday_sum", "best_monday_sum", "final_score"]
         writer.writerow(header)
 
         for row in final_rows:
             writer.writerow(
-                [row["name"], row["vjudge handle"], row["session"]]
+                [row["name"], row["vjudge handle"], row["session"], row["department"]]
                 + row["normalized_values"]
                 + [row["best_saturday_sum"], row["best_monday_sum"], row["final_score"]]
             )
