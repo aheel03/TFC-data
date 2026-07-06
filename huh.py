@@ -280,6 +280,81 @@ def generate_leaderboard_csv(
 
     print(f"[+] Leaderboard CSV generated: '{output_csv_path}'")
 
+
+def generate_unweighted_leaderboard_csv(
+    all_stats,
+    contest_ids,
+    form_csv_path,
+    output_csv_path,
+    k_percent,
+):
+    """
+    Computes leaderboard using top k% contests from all contests as one group.
+    Columns: name, vjudge handle, session, department, [normalized contests...],
+    best_contest_sum, contests_taken, final_score
+    """
+    print(f"[*] Mapping data against '{form_csv_path}' for unweighted leaderboard...")
+
+    user_info_map = build_user_info_map(form_csv_path)
+
+    final_rows = []
+    all_handles = set(user_info_map.keys())
+    for contest_id in contest_ids:
+        all_handles.update(all_stats[contest_id]["results"].keys())
+
+    contest_max_solves = build_contest_max_solves(all_stats, contest_ids)
+    contests_taken = int((k_percent / 100) * len(contest_ids))
+
+    for handle in all_handles:
+        name = user_info_map.get(handle, {}).get("name", handle)
+        session = user_info_map.get(handle, {}).get("session", "Unknown")
+        department = user_info_map.get(handle, {}).get("department", "Unknown")
+
+        normalized_values = {}
+        for contest_id in contest_ids:
+            solves = all_stats[contest_id]["results"].get(handle, 0)
+            max_solves = contest_max_solves.get(contest_id, 0)
+            normalized_values[contest_id] = (solves / max_solves) if max_solves > 0 else 0.0
+
+        best_contest_sum = sum(
+            sorted(normalized_values.values(), reverse=True)[:contests_taken]
+        )
+        final_score = (
+            (best_contest_sum / contests_taken) * 100 if contests_taken > 0 else 0.0
+        )
+
+        final_rows.append(
+            {
+                "name": name,
+                "vjudge handle": handle,
+                "session": session,
+                "department": department,
+                "normalized_values": [normalized_values[cid] for cid in contest_ids],
+                "best_contest_sum": best_contest_sum,
+                "contests_taken": contests_taken,
+                "final_score": final_score,
+            }
+        )
+
+    final_rows.sort(key=lambda x: (-x["final_score"], x["name"].lower()))
+
+    with open(output_csv_path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        header = ["name", "vjudge handle", "session", "department"] + [
+            f"Contest {contest_id} normalized" for contest_id in contest_ids
+        ] + ["best_contest_sum", "contests_taken", "final_score"]
+        writer.writerow(header)
+
+        for row in final_rows:
+            writer.writerow(
+                [row["name"], row["vjudge handle"], row["session"], row["department"]]
+                + row["normalized_values"]
+                + [row["best_contest_sum"], row["contests_taken"], row["final_score"]]
+            )
+
+    print(f"[+] Unweighted leaderboard CSV generated: '{output_csv_path}'")
+
+
 def scrape_vjudge_multi():
     all_contest_stats = {}
     contest_ids = SATURDAY_CONTESTS + MONDAY_CONTESTS
@@ -315,6 +390,7 @@ def scrape_vjudge_multi():
         # Process and save
         all_results_filename = "all_contest_results.csv"
         leaderboard_filename = "main_leaderboard_results.csv"
+        unweighted_leaderboard_filename = "unweighted_leaderboard_results.csv"
 
         generate_all_contests_csv(
             all_contest_stats,
@@ -331,6 +407,13 @@ def scrape_vjudge_multi():
             K_PERCENT,
             SATURDAY_WEIGHT,
             MONDAY_WEIGHT,
+        )
+        generate_unweighted_leaderboard_csv(
+            all_contest_stats,
+            contest_ids,
+            FORM_CSV_FILENAME,
+            unweighted_leaderboard_filename,
+            K_PERCENT,
         )
         
         browser.close()

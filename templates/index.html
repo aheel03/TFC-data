@@ -34,7 +34,7 @@
             <p class="hero-eyebrow">Competitive Programming</p>
             <h1>{{ title }}</h1>
             <p class="hero-sub">
-                Explore all contest data plus the main leaderboard built from the top {{ k_percent }}% normalized results in each category. Search by name or handle, sort any column, and track performance at a glance.
+                Explore all contest data plus weighted and unweighted leaderboards built from top {{ k_percent }}% normalized results. Search by name or handle, sort any column, and track performance at a glance.
             </p>
         </header>
 
@@ -66,11 +66,17 @@
             <p class="formula-line">
                 Saturday contests: {{ saturday_contests|join(', ') }}. Monday contests: {{ monday_contests|join(', ') }}.
             </p>
+            <p class="formula-line">
+                The unweighted leaderboard treats every contest equally and takes the best {{ unweighted_take }} normalized scores from all {{ saturday_total + monday_total }} contests.
+            </p>
         </section>
 
         <div class="table-toggle" role="tablist" aria-label="Contest tables">
             <button class="toggle-btn is-active" data-target="leaderboard-table" role="tab" aria-pressed="true">
                 Main leaderboard
+            </button>
+            <button class="toggle-btn" data-target="unweighted-leaderboard-table" role="tab" aria-pressed="false">
+                Unweighted leaderboard
             </button>
             <button class="toggle-btn" data-target="all-contests-table" role="tab" aria-pressed="false">
                 All contests
@@ -134,6 +140,47 @@
                         {% for row in leaderboard_rows %}
                             <tr>
                                 {% for column in leaderboard_columns %}
+                                    {% if column == 'session' %}
+                                        <td><span class="session-badge">{{ row[column] }}</span></td>
+                                    {% elif column == 'final_score' %}
+                                        <td data-order="{{ row[column] }}">{{ '%.3f'|format((row[column] or 0)|float) }}</td>
+                                    {% elif 'normalized' in column or 'sum' in column %}
+                                        <td>{{ '%.3f'|format((row[column] or 0)|float) }}</td>
+                                    {% else %}
+                                        <td>{{ row[column] }}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="table-card is-hidden" id="unweighted-leaderboard-table">
+            <h2>Unweighted Leaderboard (Best {{ unweighted_take }} of {{ saturday_total + monday_total }} Contests)</h2>
+            <div class="table-scroll-shell">
+                <table id="unweightedLeaderboardTable" class="display modern-table" style="width:100%">
+                    <thead>
+                        <tr>
+                            {% for column in unweighted_columns %}
+                                {% set column_parts = column.split(' ') %}
+                                {% set contest_id = column_parts[1] if column_parts|length > 1 else '' %}
+                                <th>
+                                    <span class="th-label">{{ column.replace('_', ' ')|replace(' ', '<br>')|safe }}</span>
+                                    {% if contest_id and contest_id|int in saturday_contests %}
+                                        <span class="contest-badge badge-sat">Sat</span>
+                                    {% elif contest_id and contest_id|int in monday_contests %}
+                                        <span class="contest-badge badge-mon">Mon</span>
+                                    {% endif %}
+                                </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in unweighted_rows %}
+                            <tr>
+                                {% for column in unweighted_columns %}
                                     {% if column == 'session' %}
                                         <td><span class="session-badge">{{ row[column] }}</span></td>
                                     {% elif column == 'final_score' %}
@@ -216,6 +263,7 @@
 
             const allTable = initTable('#allResultsTable');
             const leaderboardTable = initTable('#leaderboardTable');
+            const unweightedLeaderboardTable = initTable('#unweightedLeaderboardTable');
 
             allTable.on('draw', function () {
                 applyRowBands(allTable);
@@ -223,18 +271,24 @@
             leaderboardTable.on('draw', function () {
                 applyRowBands(leaderboardTable);
             });
+            unweightedLeaderboardTable.on('draw', function () {
+                applyRowBands(unweightedLeaderboardTable);
+            });
 
             applyRowBands(allTable);
             applyRowBands(leaderboardTable);
+            applyRowBands(unweightedLeaderboardTable);
 
             const tableSections = {
                 'all-contests-table': document.getElementById('all-contests-table'),
-                'leaderboard-table': document.getElementById('leaderboard-table')
+                'leaderboard-table': document.getElementById('leaderboard-table'),
+                'unweighted-leaderboard-table': document.getElementById('unweighted-leaderboard-table')
             };
 
             const tableInstances = {
                 'all-contests-table': allTable,
-                'leaderboard-table': leaderboardTable
+                'leaderboard-table': leaderboardTable,
+                'unweighted-leaderboard-table': unweightedLeaderboardTable
             };
 
             function setActiveTable(targetId) {

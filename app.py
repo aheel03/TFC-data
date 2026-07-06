@@ -11,13 +11,14 @@ from flask import Flask, render_template
 BASE_DIR = Path(__file__).resolve().parent
 ALL_RESULTS_CSV = BASE_DIR / "all_contest_results.csv"
 LEADERBOARD_CSV = BASE_DIR / "main_leaderboard_results.csv"
+UNWEIGHTED_LEADERBOARD_CSV = BASE_DIR / "unweighted_leaderboard_results.csv"
 CSS_PATH = BASE_DIR / "static" / "styles.css"
 
 app = Flask(__name__)
 
 # Keep these values aligned with huh.py
 SATURDAY_CONTESTS = [802104, 804183, 807851, 811576]
-MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448, 812090]
+MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448, 812090, 817088, 826829, 828372]
 K_PERCENT = 80
 SATURDAY_WEIGHT = 1.25
 MONDAY_WEIGHT = 1.0
@@ -47,6 +48,7 @@ def load_results(csv_path: Path) -> tuple[list[str], list[dict[str, Any]]]:
 def index() -> str:
     all_columns, all_rows = load_results(ALL_RESULTS_CSV)
     leaderboard_columns, leaderboard_rows = load_results(LEADERBOARD_CSV)
+    unweighted_columns, unweighted_rows = load_results(UNWEIGHTED_LEADERBOARD_CSV)
 
     # Compute stats for the dashboard cards
     total = len(leaderboard_rows)
@@ -64,6 +66,7 @@ def index() -> str:
     monday_total = len(MONDAY_CONTESTS)
     saturday_take = int((K_PERCENT / 100) * saturday_total)
     monday_take = int((K_PERCENT / 100) * monday_total)
+    unweighted_take = int((K_PERCENT / 100) * (saturday_total + monday_total))
 
     return render_template(
         "index.html",
@@ -72,6 +75,8 @@ def index() -> str:
         all_rows=all_rows,
         leaderboard_columns=leaderboard_columns,
         leaderboard_rows=leaderboard_rows,
+        unweighted_columns=unweighted_columns,
+        unweighted_rows=unweighted_rows,
         total=total,
         top_score=round(top_score, 3),
         top_name=top_name,
@@ -82,6 +87,7 @@ def index() -> str:
         monday_total=monday_total,
         saturday_take=saturday_take,
         monday_take=monday_take,
+        unweighted_take=unweighted_take,
         saturday_weight=SATURDAY_WEIGHT,
         monday_weight=MONDAY_WEIGHT,
         saturday_contests=SATURDAY_CONTESTS,
