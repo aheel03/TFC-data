@@ -37,7 +37,7 @@ if not USERNAME or not PASSWORD:
 # --- CONTEST GROUPS ---
 # Keep these lists updated with the correct contest IDs per day.
 SATURDAY_CONTESTS = [802104, 804183, 807851,811576]
-MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448, 812090]
+MONDAY_CONTESTS = [802757, 804587, 805225, 806580, 808448, 812090, 817088,826829,828372]
 
 # Leaderboard parameters
 K_PERCENT = 80
@@ -58,10 +58,35 @@ def get_solve_counts(data):
     submissions = data.get("submissions", [])
     contest_length_sec = data.get("length", 0) // 1000
 
+    def get_participant_handle(participant):
+        """VJudge rank APIs have returned both list and dict participant rows."""
+        if isinstance(participant, (list, tuple)):
+            return participant[0] if participant else None
+
+        if isinstance(participant, dict):
+            for key in ("userName", "username", "handle", "name", "account"):
+                value = participant.get(key)
+                if value:
+                    return value
+
+        return None
+
     # Initialize solve tracker: {participant_id: {problem_index: is_solved}}
     solve_tracker = {}
-    for pid in participants:
-        solve_tracker[str(pid)] = {}
+    if isinstance(participants, dict):
+        participant_items = participants.items()
+    else:
+        participant_items = enumerate(participants)
+
+    participant_handles = {}
+    for pid, participant in participant_items:
+        handle = get_participant_handle(participant)
+        if not handle:
+            continue
+
+        pid = str(pid)
+        participant_handles[pid] = handle
+        solve_tracker[pid] = {}
 
     # Sort submissions by time
     submissions.sort(key=lambda x: x[3])
@@ -82,7 +107,7 @@ def get_solve_counts(data):
     # Map participant ID back to Vjudge Handle and count True values
     results = {}
     for pid, solved_probs in solve_tracker.items():
-        handle = participants[pid][0]
+        handle = participant_handles[pid]
         results[handle.lower()] = len(solved_probs)
     
     return results
